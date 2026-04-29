@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inkwell — Personal Blog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     NAVIGATION
+══════════════════════════════ -->
+<nav id="main-nav">
+  <div class="nav-logo" onclick="goHome()">Ink<span>well</span></div>
+  <div class="nav-links" id="nav-links">
+    <button onclick="showPage('home')" class="active" id="nb-home">Blog</button>
+    <span id="nav-user"></span>
+    <button onclick="showPage('dashboard')" id="nb-dash" style="display:none">Dashboard</button>
+    <button onclick="showPage('create')" id="nb-create" style="display:none">Write Post</button>
+    <button onclick="showPage('admin')" id="nb-admin" style="display:none">Admin</button>
+    <button onclick="showPage('contact')" id="nb-contact">Contact</button>
+    <button onclick="showPage('login')" id="nb-login">Login</button>
+    <button onclick="showPage('register')" id="nb-register">Register</button>
+    <button onclick="logout()" id="nb-logout" class="nav-logout" style="display:none">Logout</button>
+  </div>
+</nav>
+
+<!-- Toast Notification -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════
+     EDIT MODAL
+══════════════════════════════ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeEditModal()">✕</button>
+    <h3>Edit Post</h3>
+    <input type="hidden" id="edit-post-id" />
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="edit-title" />
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <input type="text" id="edit-category" />
+    </div>
+    <div class="form-group">
+      <label>Content</label>
+      <textarea id="edit-content" rows="6"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveEdit()" style="width:100%">Save Changes</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: HOME
+══════════════════════════════ -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-tag">✦ A Space to Think & Create</div>
+    <h1>Stories worth <em>reading.</em><br>Ideas worth <em>sharing.</em></h1>
+    <p>A curated blog where thoughts find form and ideas spark conversation.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="scrollToPosts()">Explore Posts</button>
+      <button class="btn btn-outline" onclick="showPage('register')">Start Writing</button>
+    </div>
+  </div>
+  <div class="container" id="posts-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+      <h2 class="section-title" style="margin-bottom:0;border:none;padding:0">Latest Posts</h2>
+      <div class="search-bar" style="margin:0;max-width:300px;">
+        <input type="text" id="search-input" placeholder="Search posts…" oninput="filterPosts()" />
+        <button onclick="filterPosts()">Search</button>
+      </div>
+    </div>
+    <div class="blog-grid" id="blog-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: SINGLE POST
+══════════════════════════════ -->
+<div id="page-post" class="page">
+  <div class="post-header">
+    <button class="back-btn" onclick="showPage('home')">← Back to Blog</button>
+    <div class="post-cat" id="sp-cat"></div>
+    <h1 class="post-title" id="sp-title"></h1>
+    <div class="post-meta">By <span id="sp-author"></span> · <span id="sp-date"></span></div>
+  </div>
+  <div class="post-body">
+    <img id="sp-img" src="" alt="" style="display:none" />
+    <div class="post-content" id="sp-content"></div>
+    <div class="post-actions">
+      <button class="btn btn-sm btn-danger" id="sp-like-btn" onclick="likePost()">♥ Like (<span id="sp-likes">0</span>)</button>
+      <span style="font-size:0.8rem;color:var(--muted)" id="sp-comment-count">0 comments</span>
+    </div>
+    <div class="comments-section">
+      <h3>Comments</h3>
+      <div id="sp-comments"></div>
+      <div class="comment-form" id="comment-form-wrap">
+        <textarea id="comment-input" placeholder="Add a comment…"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="addComment()" style="align-self:flex-start">Post Comment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: LOGIN
+══════════════════════════════ -->
+<div id="page-login" class="page">
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <h2>Welcome back</h2>
+      <p class="sub">Sign in to your Inkwell account</p>
+      <div id="login-alert"></div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="••••••••" />
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
+      <div class="auth-switch">Don't have an account? <a onclick="showPage('register')">Register</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: REGISTER
+══════════════════════════════ -->
+<div id="page-register" class="page">
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <h2>Create account</h2>
+      <p class="sub">Join Inkwell and start sharing your stories</p>
+      <div id="reg-alert"></div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="reg-name" placeholder="Jane Doe" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-pass" placeholder="min. 6 characters" />
+      </div>
+      <button class="btn btn-gold" style="width:100%" onclick="doRegister()">Create Account</button>
+      <div class="auth-switch">Already have an account? <a onclick="showPage('login')">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: DASHBOARD
+══════════════════════════════ -->
+<div id="page-dashboard" class="page">
+  <div class="dashboard-header">
+    <h2 id="dash-greeting">Hello, Writer!</h2>
+    <p>Here's an overview of your activity on Inkwell.</p>
+  </div>
+  <div class="container">
+    <div class="dashboard-stats" id="dash-stats"></div>
+    <h2 class="section-title">Your Posts</h2>
+    <div class="blog-grid" id="my-posts-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: CREATE POST
+══════════════════════════════ -->
+<div id="page-create" class="page">
+  <div class="create-wrapper">
+    <h2 class="section-title">Write a New Post</h2>
+    <div id="create-alert"></div>
+    <div class="form-group">
+      <label>Post Title</label>
+      <input type="text" id="post-title" placeholder="Give your post a great title…" />
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <input type="text" id="post-cat" placeholder="e.g. Travel, Tech, Life…" />
+    </div>
+    <div class="form-group">
+      <label>Cover Image (optional)</label>
+      <input type="file" id="post-img" accept="image/*" onchange="previewImg()" />
+      <div class="image-preview-container" id="img-preview-container"></div>
+    </div>
+    <div class="form-group">
+      <label>Content</label>
+      <textarea id="post-content" rows="10" placeholder="Start writing your story…"></textarea>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="publishPost()">Publish Post</button>
+      <button class="btn btn-outline" style="border-color:var(--border);color:var(--muted)" onclick="showPage('dashboard')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: ADMIN PANEL
+══════════════════════════════ -->
+<div id="page-admin" class="page">
+  <div class="dashboard-header" style="background:linear-gradient(135deg,#1a1209 0%,#3d1f0a 100%)">
+    <h2>⚙ Admin Panel</h2>
+    <p>Manage all content and users on Inkwell.</p>
+  </div>
+  <div class="container">
+    <div class="tab-bar">
+      <button class="tab active" onclick="adminTab('posts',this)">All Posts</button>
+      <button class="tab" onclick="adminTab('users',this)">Users</button>
+      <button class="tab" onclick="adminTab('messages',this)">Messages</button>
+    </div>
+
+    <!-- Posts Tab -->
+    <div id="admin-posts-tab">
+      <div class="table-wrap">
+        <table class="admin-table" id="admin-posts-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Category</th>
+              <th>Likes</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-posts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="admin-users-tab" style="display:none">
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Posts</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Messages Tab -->
+    <div id="admin-messages-tab" style="display:none">
+      <div id="admin-messages-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE: CONTACT
+══════════════════════════════ -->
+<div id="page-contact" class="page">
+  <div class="contact-wrapper">
+    <div class="contact-info">
+      <h2>Get in touch</h2>
+      <p>Have a question, a story pitch, or just want to say hello? We'd love to hear from you.</p>
+      <div class="contact-item">
+        <div class="contact-icon">📧</div>
+        <div class="contact-detail">
+          <strong>Email</strong>
+          <span>hello@inkwell.blog</span>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">🐦</div>
+        <div class="contact-detail">
+          <strong>Twitter</strong>
+          <span>@inkwellblog</span>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">📍</div>
+        <div class="contact-detail">
+          <strong>Location</strong>
+          <span>Kurnool, Andhra Pradesh, India</span>
+        </div>
+      </div>
+    </div>
+    <div class="contact-form-card">
+      <h3>Send a message</h3>
+      <div id="contact-alert"></div>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="c-name" placeholder="Jane Doe" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="c-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Subject</label>
+        <input type="text" id="c-subject" placeholder="What's this about?" />
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea id="c-msg" rows="5" placeholder="Your message…"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="sendContact()" style="width:100%">Send Message</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     FOOTER
+══════════════════════════════ -->
+<footer>
+  <p>Made with ♥ · <strong>Inkwell</strong> Personal Blog · © 2025</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
